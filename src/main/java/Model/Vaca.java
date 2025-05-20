@@ -5,12 +5,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Column;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.UUID;
 
 @Entity
 public class Vaca {
     @Id
     @Column(name = "id", nullable = false, length = 36)
-    private String id;
+    private UUID id;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;

@@ -6,13 +6,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
 import java.sql.Timestamp;
+import java.util.UUID;
 
 @Entity
     public class Invitation {
 
         @Id
         @Column(length = 36, nullable = false, unique = true)
-        private String id;
+        private UUID id;
 
         @Column(nullable = false, length = 36)
         private String vaca_id;
@@ -29,7 +30,7 @@ import java.sql.Timestamp;
         public Invitation() {
         }
 
-        public Invitation(Timestamp created_at, String status, String sender_id, String vaca_id, String id) {
+        public Invitation(Timestamp created_at, String status, String sender_id, String vaca_id, UUID id) {
             this.created_at = created_at;
             this.status = status;
             this.sender_id = sender_id;
@@ -37,11 +38,11 @@ import java.sql.Timestamp;
             this.id = id;
         }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

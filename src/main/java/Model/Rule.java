@@ -42,7 +42,51 @@ public class Rule {
         this.created_at = created_at;
     }
 
+    public UUID getId() {
+        return id;
+    }
 
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
+    public String getVaca_id() {
+        return vaca_id;
+    }
 
+    public void setVaca_id(String vaca_id) {
+        this.vaca_id = vaca_id;
+    }
+
+    public String getRule_type() {
+        return rule_type;
+    }
+
+    public void setRule_type(String rule_type) {
+        this.rule_type = rule_type;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Timestamp getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(Timestamp created_at) {
+        this.created_at = created_at;
+    }
 }

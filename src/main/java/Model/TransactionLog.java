@@ -22,7 +22,7 @@ public class TransactionLog {
     @Column(name = "action", nullable = false)
     private String action;
 
-    // Use String for jsonb fields, or you can use Object and handle conversion with @Convert
+   //los datos son jsonb pero se pueden usar con String
     @Column(name = "old_data", columnDefinition = "jsonb")
     private String old_data;
 
