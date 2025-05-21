@@ -29,7 +29,7 @@ public class ProfileService{
 
     @Transactional
     public Profile createProfile(Profile profile) {
-        // Validación básica
+        // Validación básica eskividi toilet
         if (profile.getEmail() == null || profile.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("El email es obligatorio");
         }
