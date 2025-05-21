@@ -1,7 +1,53 @@
 package Service;
 
+import Model.Vaca;
+import Model.Participant;
+import Repository.VacaRepository;
+import Repository.ParticipantRepository;
+import jakarta.persistence.EntityNotFoundException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
 public class VacaService {
-}
+
+    @Autowired
+    private VacaRepository vacaRepository;
+
+    @Autowired
+    private ParticipantRepository participantRepository;
+
+    // DTO para recibir datos del frontend
+    public static class VacaDTO {
+        private String name;
+        private String description;
+        private BigDecimal goal;
+        private String color;
+        private Timestamp deadline;
+
+        // Getters y setters
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+
+        public BigDecimal getGoal() { return goal; }
+        public void setGoal(BigDecimal goal) { this.goal = goal; }
+
+        public String getColor() { return color; }
+        public void setColor(String color) { this.color = color; }
+
+        public Timestamp getDeadline() { return deadline; }
+        public void setDeadline(Timestamp deadline) { this.deadline = deadline; }
+    }
 
     // Método para crear una vaca con datos del frontend
     public Vaca createVaca(VacaDTO vacaDTO) {

@@ -43,7 +43,7 @@ public class Vaca {
     public Vaca() {
     }
 
-    public Vaca(String id, String name, String description, BigDecimal goal, BigDecimal current, String color, Timestamp createdAt, Timestamp deadline, Boolean isActive, String status) {
+    public Vaca(UUID id, String name, String description, BigDecimal goal, BigDecimal current, String color, Timestamp createdAt, Timestamp deadline, Boolean isActive, String status) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -56,11 +56,11 @@ public class Vaca {
         this.status = status;
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
