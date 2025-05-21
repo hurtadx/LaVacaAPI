@@ -4,10 +4,12 @@ package Model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.sql.Timestamp;
 
 @Entity
+@Table(name = "participants")
 public class Participant {
 
     @Id
@@ -29,6 +31,10 @@ public class Participant {
     @Column(length = 36)
     private String user_id;
 
+    @Column(nullable = false)
+    private String status = "pendiente";  // Valores: activo, pendiente, inactivo
+
+
     public Participant() {
     }
 
@@ -39,6 +45,16 @@ public class Participant {
         this.email = email;
         this.created_at = created_at;
         this.user_id = user_id;
+    }
+
+    public Participant(String id, String vaca_id, String name, String email, Timestamp created_at, String user_id, String status) {
+        this.id = id;
+        this.vaca_id = vaca_id;
+        this.name = name;
+        this.email = email;
+        this.created_at = created_at;
+        this.user_id = user_id;
+        this.status = status;
     }
 
     public String getId() {
@@ -87,5 +103,13 @@ public class Participant {
 
     public void setUser_id(String user_id) {
         this.user_id = user_id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

@@ -3,11 +3,14 @@ package Model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
+import jakarta.persistence.Table;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
+@Table(name = "vacas")
 public class Vaca {
     @Id
     @Column(name = "id", nullable = false, length = 36)

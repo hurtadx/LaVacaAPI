@@ -71,18 +71,6 @@ public class VacaService {
 
     // Método para obtener vacas por usuario (este método necesita implementación)
     public List<Vaca> getAllVacas(UUID userId) {
-        // El método findByUserId no existe en VacaRepository
-        // Se necesita implementar una consulta personalizada o usar ParticipantRepository
-        // para encontrar las vacas en las que participa el usuario
-
-        // Ejemplo de implementación:
-        // List<Participant> participants = participantRepository.findByUser_id(userId.toString());
-        // return participants.stream()
-        //     .map(p -> vacaRepository.findById(UUID.fromString(p.getVaca_id())))
-        //     .filter(Optional::isPresent)
-        //     .map(Optional::get)
-        //     .collect(Collectors.toList());
-
         throw new UnsupportedOperationException("Método no implementado correctamente");
     }
 
@@ -124,48 +112,52 @@ public class VacaService {
         sendEmail(email, subject, body);
     }
 
-    // Método para enviar emails (necesita implementación)
+    // Implementación del método para enviar emails
     private void sendEmail(String email, String subject, String body) {
-        // Implementemos la lógica de envío de correos
-        // Podemos usar JavaMailSender u otro servicio
+        // Aquí podrías usar JavaMailSender de Spring
+        System.out.println("Enviando email a: " + email);
+        System.out.println("Asunto: " + subject);
+        System.out.println("Contenido: " + body);
+        // Nota: Esta es una implementación de simulación.
+        // En producción, debemos inyectar y usar un servicio de email real.
     }
 
-    // Acepta una invitación
-    public void acceptInvitation(UUID invitationId, UUID userId) {
-        // El objeto Participant necesita ser definido correctamente según el modelo
+    // Corrección del método acceptInvitation
+    public void acceptInvitation(UUID vacaId, UUID userId) {
+        Vaca vaca = getVacaById(vacaId);
+        if (!vaca.getIsActive()) {
+            throw new IllegalStateException("No se puede unir a una vaca inactiva");
+        }
+
+        if (participantRepository.existsByVaca_idAndUser_id(vacaId.toString(), userId.toString())) {
+            throw new IllegalStateException("Ya eres participante en esta vaca");
+        }
+
         Participant participant = new Participant();
-        // Asumiendo que Participant tiene los métodos necesarios
-        // participant.setId(UUID.randomUUID().toString());
-        // participant.setVaca_id(invitationId.toString());
-        // participant.setUser_id(userId.toString());
-        // participant.setStatus("ACTIVE");
+        participant.setId(UUID.randomUUID().toString());
+        participant.setVaca_id(vacaId.toString());
+        participant.setUser_id(userId.toString());
+        participant.setCreated_at(new Timestamp(System.currentTimeMillis()));
+        participant.setStatus("activo"); // Ahora se asigna el status correctamente
 
-        // participantRepository.save(participant);
+        participantRepository.save(participant);
     }
 
-    // Usuario abandona una vaca
+    // Corrección del método leaveVaca
     public void leaveVaca(UUID vacaId, UUID userId) {
-        // El método findByVacaIdAndUserId no existe en ParticipantRepository
-        // Debe usar el método correspondiente según la definición del repositorio
-        // Por ejemplo: findByVaca_idAndUser_id
+        Optional<Participant> participantOpt = participantRepository.findByVaca_idAndUser_id(
+            vacaId.toString(), userId.toString());
 
-        // Participant participant = participantRepository.findByVaca_idAndUser_id(
-        //    vacaId.toString(), userId.toString()).orElse(null);
-        // if (participant != null) {
-        //    participant.setStatus("INACTIVE");
-        //    // Participant probablemente no tiene updatedAt
-        //    participantRepository.save(participant);
-        // }
+        if (participantOpt.isEmpty()) {
+            throw new EntityNotFoundException("No eres participante en esta vaca");
+        }
+
+        participantRepository.delete(participantOpt.get());
     }
 
-    // Obtiene participantes activos
+    // Implementación del método getActiveParticipants
     public List<Participant> getActiveParticipants(UUID vacaId) {
-        // El método findByVacaIdAndStatus no existe en ParticipantRepository
-        // Debe usar el método correspondiente según el repositorio
-        // Por ejemplo: findByVaca_idAndStatus
-
-        // return participantRepository.findByVaca_idAndStatus(vacaId.toString(), "ACTIVE");
-        throw new UnsupportedOperationException("Método no implementado correctamente");
+        return participantRepository.findByVaca_idAndStatus(vacaId.toString(), "activo");
     }
 
     // Obtener todas las vacas activas
@@ -208,9 +200,11 @@ public class VacaService {
         participant.setEmail(email);
         participant.setName(name);
         participant.setCreated_at(new Timestamp(System.currentTimeMillis()));
+        participant.setStatus("pendiente"); // Por defecto, status pendiente
 
         if (userId != null) {
             participant.setUser_id(userId.toString());
+            participant.setStatus("activo"); // Si tiene userId, status activo
         }
 
         return participantRepository.save(participant);
@@ -246,20 +240,16 @@ public class VacaService {
 
     // Método para obtener todas las vacas en las que participa un usuario
     public List<Vaca> getVacasByParticipant(UUID userId) {
-        List<Participant> participant = participantRepository.findByUser_id(userId.toString());
-        if (participant.isEmpty()) {
+        List<Participant> participants = participantRepository.findByUser_id(userId.toString());
+        if (participants.isEmpty()) {
             return List.of();
         }
 
-        List<String> vacaIds = participantRepository.findByUser_id(userId.toString())
-            .stream()
-            .map(Participant::getVaca_id)
+        List<UUID> vacaIds = participants.stream()
+            .map(p -> UUID.fromString(p.getVaca_id()))
             .toList();
 
-        return vacaRepository.findAllById(vacaIds.stream()
-            .map(UUID::fromString)
-            .toList());
+        return vacaRepository.findAllById(vacaIds);
     }
-
-
 }
+
