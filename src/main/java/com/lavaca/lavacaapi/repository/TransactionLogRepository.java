@@ -49,14 +49,9 @@ public interface TransactionLogRepository extends JpaRepository<TransactionLog, 
     // Buscar logs para múltiples transacciones (útil para análisis por lotes)
     List<TransactionLog> findByTransactionIdIn(List<UUID> transactionIds);
 
-    // Verificar si existe algún log para una transacción
-    boolean existsByTransactionId(UUID transactionId);
+    // Verificar si existe algún log para una transacción con una acción específica
+    boolean existsByTransactionIdAndAction(UUID transactionId, String action);
 
-    // Contar número de cambios por transacción
-    @Query("SELECT COUNT(t) FROM TransactionLog t WHERE t.transactionId = :transactionId")
-    Long countChangesByTransaction(@Param("transactionId") UUID transactionId);
-
-    //estos metodos pueden servir para:
+    boolean existsByTransactionId(UUID transactionId, String cancel);
 
 }
-
