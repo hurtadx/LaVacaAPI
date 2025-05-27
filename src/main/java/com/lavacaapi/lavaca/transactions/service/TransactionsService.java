@@ -417,4 +417,7 @@ public class TransactionsService {
                 .toList();
     }
 
-}
+    /**
+     * Obtiene un resumen de transacciones de un usuario
+     * @param userId ID del usuario
+     * @return Mapa
