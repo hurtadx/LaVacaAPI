@@ -420,4 +420,68 @@ public class TransactionsService {
     /**
      * Obtiene un resumen de transacciones de un usuario
      * @param userId ID del usuario
-     * @return Mapa
+     * @return Mapa con resumen de transacciones
+     */
+    public Map<String, Object> getUserTransactionSummary(UUID userId) {
+        List<Transactions> transactions = transactionRepository.findByUserId(userId);
+        int totalDeposits = 0;
+        int totalWithdrawals = 0;
+        int depositCount = 0;
+        int withdrawalCount = 0;
+        for (Transactions t : transactions) {
+            if ("DEPOSIT".equals(t.getType())) {
+                totalDeposits += t.getAmount();
+                depositCount++;
+            } else if ("WITHDRAWAL".equals(t.getType())) {
+                totalWithdrawals += Math.abs(t.getAmount());
+                withdrawalCount++;
+            }
+        }
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("userId", userId);
+        summary.put("transactionCount", transactions.size());
+        summary.put("depositCount", depositCount);
+        summary.put("withdrawalCount", withdrawalCount);
+        summary.put("totalDeposits", totalDeposits);
+        summary.put("totalWithdrawals", totalWithdrawals);
+        summary.put("netAmount", totalDeposits - totalWithdrawals);
+        return summary;
+    }
+
+    /**
+     * Rechaza una transacción
+     * @param id ID de la transacción
+     * @param rejectedBy ID del usuario que rechaza
+     * @return transacción rechazada
+     */
+    @Transactional
+    public Transactions rejectTransaction(UUID id, UUID rejectedBy) {
+        Transactions transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró la transacción con ID: " + id));
+
+        // Guardar el estado anterior para el log
+        String oldData = String.format("{\"approved_by\": \"%s\"}",
+                transaction.getApprovedBy() != null ? transaction.getApprovedBy() : "null");
+
+        // Marcar la transacción como rechazada (puedes usar un campo status si existe, o dejar approvedBy en null)
+        transaction.setApprovedBy(null); // O puedes agregar un campo status = "REJECTED" si lo tienes
+
+        // Guardar la transacción
+        Transactions updatedTransaction = transactionRepository.save(transaction);
+
+        // Registrar log del rechazo
+        String newData = String.format("{\"rejected_by\": \"%s\"}", rejectedBy);
+
+        TransactionLogs log = new TransactionLogs();
+        log.setId(UUID.randomUUID());
+        log.setTransactionId(id);
+        log.setUserId(rejectedBy);
+        log.setAction("REJECT");
+        log.setOld_data(oldData);
+        log.setNew_data(newData);
+        log.setTimestamp(new Timestamp(System.currentTimeMillis()));
+        transactionLogRepository.save(log);
+
+        return updatedTransaction;
+    }
+}
