@@ -205,4 +205,58 @@ public class ParticipantsService {
 
         return result;
     }
+
+    /**
+     * Actualiza un participante existente
+     * @param id ID del participante a actualizar
+     * @param participant datos actualizados
+     * @return participante actualizado
+     */
+    @Transactional
+    public Participants updateParticipant(UUID id, Participants participant) {
+        Participants existing = participantsRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el participante con ID: " + id));
+        // No permitir cambiar el ID ni la vacaId
+        participant.setId(id);
+        participant.setVacaId(existing.getVacaId());
+        // Preservar fecha de creación
+        if (participant.getCreatedAt() == null) {
+            participant.setCreatedAt(existing.getCreatedAt());
+        }
+        // Preservar userId si no se envía
+        if (participant.getUserId() == null) {
+            participant.setUserId(existing.getUserId());
+        }
+        // Preservar status si no se envía
+        if (participant.getStatus() == null) {
+            participant.setStatus(existing.getStatus());
+        }
+        return participantsRepository.save(participant);
+    }
+
+    /**
+     * Actualiza el status de un participante
+     * @param id ID del participante
+     * @param status nuevo status
+     * @return participante actualizado
+     */
+    @Transactional
+    public Participants updateParticipantStatus(UUID id, String status) {
+        Participants participant = participantsRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el participante con ID: " + id));
+        participant.setStatus(status);
+        return participantsRepository.save(participant);
+    }
+
+    /**
+     * Elimina un participante
+     * @param id ID del participante
+     */
+    @Transactional
+    public void deleteParticipant(UUID id) {
+        if (!participantsRepository.existsById(id)) {
+            throw new EntityNotFoundException("No se encontró el participante con ID: " + id);
+        }
+        participantsRepository.deleteById(id);
+    }
 }

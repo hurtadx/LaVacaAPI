@@ -21,9 +21,6 @@ public interface InvitationsRepository extends JpaRepository<Invitations, UUID> 
     // Buscar invitaciones recibidas por usuario
     List<Invitations> findByReceiverId(UUID receiverId);
 
-    // Buscar invitaciones enviadas por usuario
-    List<Invitations> findBySenderId(UUID senderId);
-
     // Verificadores de existencia
     boolean existsByVacaIdAndSenderId(UUID vacaId, UUID senderId);
     boolean existsByVacaIdAndStatus(UUID vacaId, String status);

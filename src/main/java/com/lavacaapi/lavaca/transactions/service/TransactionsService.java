@@ -117,6 +117,7 @@ public class TransactionsService {
 
     /**
      * Obtiene todas las transacciones
+     *
      * @return lista de transacciones
      */
     public List<Transactions> getAllTransactions() {
@@ -125,6 +126,7 @@ public class TransactionsService {
 
     /**
      * Obtiene una transacción por su ID
+     *
      * @param id ID de la transacción
      * @return transacción encontrada o empty si no existe
      */
@@ -134,6 +136,7 @@ public class TransactionsService {
 
     /**
      * Obtiene todas las transacciones relacionadas con una vaca
+     *
      * @param vacaId ID de la vaca
      * @return lista de transacciones de la vaca
      */
@@ -147,6 +150,7 @@ public class TransactionsService {
 
     /**
      * Obtiene todas las transacciones realizadas por un usuario
+     *
      * @param userId ID del usuario
      * @return lista de transacciones del usuario
      */
@@ -156,6 +160,7 @@ public class TransactionsService {
 
     /**
      * Obtiene todas las transacciones de un participante
+     *
      * @param participantId ID del participante
      * @return lista de transacciones del participante
      */
@@ -169,7 +174,8 @@ public class TransactionsService {
 
     /**
      * Actualiza una transacción existente
-     * @param id ID de la transacción a actualizar
+     *
+     * @param id          ID de la transacción a actualizar
      * @param transaction Datos actualizados
      * @return transacción actualizada
      */
@@ -241,6 +247,7 @@ public class TransactionsService {
 
     /**
      * Elimina una transacción
+     *
      * @param id ID de la transacción a eliminar
      */
     @Transactional
@@ -292,6 +299,7 @@ public class TransactionsService {
 
     /**
      * Obtiene estadísticas de transacciones para una vaca
+     *
      * @param vacaId ID de la vaca
      * @return Mapa con estadísticas (total aportado, promedio, mayor aporte, etc)
      */
@@ -343,6 +351,7 @@ public class TransactionsService {
 
     /**
      * Obtiene las transacciones más recientes
+     *
      * @param limit cantidad de transacciones a obtener
      * @return lista de transacciones
      */
@@ -359,7 +368,8 @@ public class TransactionsService {
 
     /**
      * Aprueba una transacción
-     * @param id ID de la transacción
+     *
+     * @param id         ID de la transacción
      * @param approvedBy ID del usuario que aprueba
      * @return transacción aprobada
      */
@@ -396,6 +406,7 @@ public class TransactionsService {
 
     /**
      * Obtiene las transacciones pendientes de aprobación de una vaca
+     *
      * @param vacaId ID de la vaca
      * @return lista de transacciones pendientes
      */
@@ -406,7 +417,4 @@ public class TransactionsService {
                 .toList();
     }
 
-    /**
-     * Rechaza una transacción
-     * @param id ID de la transacción
-     * @param rejectedBy ID del usuario que rech
+}

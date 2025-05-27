@@ -11,12 +11,28 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
 
 @Service
 public class ExpenseService {
 
     @Autowired
     private ExpenseRepository expenseRepository;
+
+    // Métodos de recibos de gastos (simples, solo para demo, sin persistencia real)
+    private final Map<UUID, List<String>> expenseReceipts = new HashMap<>();
+
+    public List<String> getExpenseReceipts(UUID id) {
+        return expenseReceipts.getOrDefault(id, Collections.emptyList());
+    }
+
+    public List<String> addExpenseReceipt(UUID id, String receiptInfo) {
+        expenseReceipts.computeIfAbsent(id, k -> new ArrayList<>()).add(receiptInfo);
+        return expenseReceipts.get(id);
+    }
 
     @Transactional
     public Expense createExpense(Expense expense) {
