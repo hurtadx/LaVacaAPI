@@ -53,6 +53,11 @@ public class VacasService {
             throw new IllegalArgumentException("La meta debe ser mayor a 0");
         }
 
+        // Validar que el userId no sea nulo
+        if (vaca.getUserId() == null) {
+            throw new IllegalArgumentException("El ID del usuario creador es obligatorio");
+        }
+
         // Verificar que no exista una vaca con el mismo nombre
         if (vacasRepository.existsByNameIgnoreCase(vaca.getName())) {
             throw new IllegalArgumentException("Ya existe una vaca con ese nombre");
@@ -76,10 +81,32 @@ public class VacasService {
             vaca.setIsActive(true);
         }
 
+        // Usar valores válidos para el status según la restricción de la base de datos
+        // Solo se permiten: draft, open, closed, canceled (en minúsculas)
         if (vaca.getStatus() == null) {
-            vaca.setStatus("ACTIVE");
+            vaca.setStatus("draft");
+        } else {
+            String status = vaca.getStatus().toLowerCase();
+            switch (status) {
+                case "draft":
+                case "open":
+                case "closed":
+                case "canceled":
+                    vaca.setStatus(status);
+                    break;
+                case "active":
+                    vaca.setStatus("open");
+                    break;
+                case "completed":
+                    vaca.setStatus("closed");
+                    break;
+                case "cancelled":
+                    vaca.setStatus("canceled");
+                    break;
+                default:
+                    vaca.setStatus("draft"); // Valor por defecto si no coincide
+            }
         }
-
         return vacasRepository.save(vaca);
     }
 

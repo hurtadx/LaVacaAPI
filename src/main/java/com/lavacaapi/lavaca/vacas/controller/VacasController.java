@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,7 +22,49 @@ public class VacasController {
 
     @PostMapping
     public ResponseEntity<Vacas> createVaca(@RequestBody Vacas vaca) {
-        return new ResponseEntity<>(vacasService.createVaca(vaca), HttpStatus.CREATED);
+        try {
+            // Asegurar que los campos requeridos estén presentes
+            if (vaca.getName() == null || vaca.getName().trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            if (vaca.getGoal() == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Si no se proporciona un ID, generarlo
+            if (vaca.getId() == null) {
+                vaca.setId(UUID.randomUUID());
+            }
+
+            // Validar que userId sea un UUID válido
+            if (vaca.getUserId() == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Establecer valores por defecto para campos opcionales
+            if (vaca.getCurrent() == null) {
+                vaca.setCurrent(BigDecimal.ZERO);
+            }
+
+            if (vaca.getCreatedAt() == null) {
+                vaca.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+            }
+
+            if (vaca.getIsActive() == null) {
+                vaca.setIsActive(true);
+            }
+
+            // Modificar el estado a "active" (minúsculas) para cumplir con la restricción de la base de datos
+            if (vaca.getStatus() == null || "ACTIVE".equals(vaca.getStatus())) {
+                vaca.setStatus("active");
+            }
+
+            return new ResponseEntity<>(vacasService.createVaca(vaca), HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping
