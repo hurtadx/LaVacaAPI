@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -56,6 +57,11 @@ public class ParticipantsController {
             @PathVariable UUID vacaId,
             Pageable pageable) {
         return ResponseEntity.ok(participantsService.getParticipantsByVacaIdPageable(vacaId, pageable));
+    }
+
+    @GetMapping("/vaca/{vacaId}/details")
+    public ResponseEntity<List<Map<String, Object>>> getParticipantsByVacaWithDetails(@PathVariable UUID vacaId) {
+        return ResponseEntity.ok(participantsService.getParticipantsByVacaWithDetails(vacaId));
     }
 
     @GetMapping("/user/{userId}")

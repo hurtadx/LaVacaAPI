@@ -27,6 +27,9 @@ public class Profiles {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
+    @Transient
+    private java.sql.Timestamp lastActivity;
+
     public Profiles() {
     }
 
@@ -85,5 +88,13 @@ public class Profiles {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public java.sql.Timestamp getLastActivity() {
+        return lastActivity;
+    }
+
+    public void setLastActivity(java.sql.Timestamp lastActivity) {
+        this.lastActivity = lastActivity;
     }
 }

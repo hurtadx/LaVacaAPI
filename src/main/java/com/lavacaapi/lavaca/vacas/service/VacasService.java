@@ -1,5 +1,6 @@
 package com.lavacaapi.lavaca.vacas.service;
 
+import com.lavacaapi.lavaca.participants.Participants;
 import com.lavacaapi.lavaca.vacas.Vacas;
 import com.lavacaapi.lavaca.vacas.repository.VacasRepository;
 import com.lavacaapi.lavaca.participants.repository.ParticipantsRepository;
@@ -12,12 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.ArrayList;
 
 @Service
 public class VacasService {
@@ -154,6 +153,35 @@ public class VacasService {
         return vacasRepository.findAll().stream()
                 .filter(v -> userId.equals(v.getUserId()))
                 .toList();
+    }
+
+    /**
+     * Obtiene vacas donde el usuario es owner o participante, sin duplicados
+     * @param userId ID del usuario
+     * @return lista de vacas
+     */
+    public List<Vacas> getVacasByUserParticipation(UUID userId) {
+        // Vacas donde el usuario es owner
+        List<Vacas> ownerVacas = vacasRepository.findAll().stream()
+                .filter(v -> userId.equals(v.getUserId()))
+                .toList();
+
+        // Vacas donde el usuario es participante
+        List<UUID> participantVacaIds = participantsRepository.findByUserId(userId).stream()
+                .map(Participants::getVacaId)
+                .distinct()
+                .toList();
+
+        List<Vacas> participantVacas = participantVacaIds.isEmpty()
+                ? List.of()
+                : vacasRepository.findAllById(participantVacaIds);
+
+        // Unir ambas listas y eliminar duplicados
+        Map<UUID, Vacas> vacaMap = new HashMap<>();
+        ownerVacas.forEach(v -> vacaMap.put(v.getId(), v));
+        participantVacas.forEach(v -> vacaMap.put(v.getId(), v));
+
+        return new ArrayList<>(vacaMap.values());
     }
 
     /**
@@ -369,3 +397,4 @@ public class VacasService {
         eventsRepository.save(event);
     }
 }
+

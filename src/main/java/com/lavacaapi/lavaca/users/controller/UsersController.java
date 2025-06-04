@@ -18,8 +18,8 @@ public class UsersController {
 
     @GetMapping("/{userId}/vacas")
     public ResponseEntity<List<Vacas>> getUserVacas(@PathVariable UUID userId) {
-        // Delegamos a VacasService que ya tiene esta funcionalidad
-        List<Vacas> vacas = vacasService.getVacasByUserId(userId);
+        // Mostrar solo vacas donde el usuario es owner o participante
+        List<Vacas> vacas = vacasService.getVacasByUserParticipation(userId);
         return ResponseEntity.ok(vacas);
     }
 }

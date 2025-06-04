@@ -29,6 +29,9 @@ public class ParticipantsService {
     private com.lavacaapi.lavaca.transactions.repository.TransactionsRepository transactionsRepository;
 
     @Autowired
+    private com.lavacaapi.lavaca.profiles.service.ProfilesService profilesService;
+
+    @Autowired
     public ParticipantsService(ParticipantsRepository participantsRepository, VacasRepository vacasRepository) {
         this.participantsRepository = participantsRepository;
         this.vacasRepository = vacasRepository;
@@ -117,7 +120,38 @@ public class ParticipantsService {
         if (!vacasRepository.existsById(vacaId)) {
             throw new EntityNotFoundException("No se encontró la vaca con ID: " + vacaId);
         }
-        return participantsRepository.findByVacaId(vacaId);
+        List<Participants> participants = participantsRepository.findByVacaId(vacaId);
+        // Obtener el owner de la vaca
+        var vacaOpt = vacasRepository.findById(vacaId);
+        if (vacaOpt.isPresent()) {
+            var vaca = vacaOpt.get();
+            UUID ownerUserId = vaca.getUserId();
+            boolean ownerIsParticipant = participants.stream()
+                    .anyMatch(p -> ownerUserId != null && ownerUserId.equals(p.getUserId()));
+            if (!ownerIsParticipant && ownerUserId != null) {
+                // Crear un participante para el owner, como un participante normal
+                Participants owner = new Participants();
+                owner.setId(UUID.randomUUID());
+                owner.setVacaId(vacaId);
+                owner.setUserId(ownerUserId);
+
+                // Obtener la información real del perfil del owner
+                var ownerProfile = profilesService.getProfileByUserId(ownerUserId);
+                if (ownerProfile.isPresent()) {
+                    owner.setName(ownerProfile.get().getUsername());
+                    owner.setEmail(ownerProfile.get().getEmail());
+                } else {
+                    // Si no hay perfil, usar valores neutros
+                    owner.setName("Usuario");
+                    owner.setEmail(null);
+                }
+
+                owner.setCreatedAt(vaca.getCreatedAt());
+                owner.setStatus("activo"); // Status normal, sin indicar que es owner
+                participants.add(0, owner); // Lo agregamos al inicio
+            }
+        }
+        return participants;
     }
 
     /**
@@ -204,6 +238,35 @@ public class ParticipantsService {
         result.put("vacaId", participant.getVacaId());
 
         return result;
+    }
+
+    /**
+     * Obtiene participantes con detalles completos
+     * @param vacaId ID de la vaca
+     * @return lista de participantes con detalles
+     */
+    @Transactional
+    public List<Map<String, Object>> getParticipantsByVacaWithDetails(UUID vacaId) {
+        // Usar la lógica de getParticipantsByVacaId para incluir siempre al owner
+        List<Participants> participants = getParticipantsByVacaId(vacaId);
+        return participants.stream().map(participant -> {
+            Map<String, Object> participantDetails = new HashMap<>();
+            participantDetails.put("id", participant.getId());
+            participantDetails.put("user_id", participant.getUserId());
+            participantDetails.put("status", participant.getStatus());
+            participantDetails.put("created_at", participant.getCreatedAt());
+
+            // Obtener detalles del perfil del usuario
+            if (participant.getUserId() != null) {
+                profilesService.getProfileByUserId(participant.getUserId()).ifPresent(profile -> {
+                    participantDetails.put("name", profile.getUsername());
+                    participantDetails.put("email", profile.getEmail());
+                    participantDetails.put("last_activity", profile.getLastActivity());
+                });
+            }
+
+            return participantDetails;
+        }).collect(Collectors.toList());
     }
 
     /**

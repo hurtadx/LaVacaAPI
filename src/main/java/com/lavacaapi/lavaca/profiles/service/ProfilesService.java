@@ -79,6 +79,15 @@ public class ProfilesService {
     }
 
     /**
+     * Obtiene un perfil por su ID de usuario
+     * @param userId ID del usuario
+     * @return perfil encontrado o empty si no existe
+     */
+    public Optional<Profiles> getProfileByUserId(UUID userId) {
+        return profileRepository.findByUserId(userId);
+    }
+
+    /**
      * Obtiene todos los perfiles
      * @return lista de perfiles
      */

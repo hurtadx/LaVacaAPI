@@ -2,6 +2,8 @@ package com.lavacaapi.lavaca.vacas.controller;
 
 import com.lavacaapi.lavaca.vacas.Vacas;
 import com.lavacaapi.lavaca.vacas.service.VacasService;
+import com.lavacaapi.lavaca.participants.Participants;
+import com.lavacaapi.lavaca.participants.service.ParticipantsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,47 +22,51 @@ public class VacasController {
     @Autowired
     private VacasService vacasService;
 
+    @Autowired
+    private ParticipantsService participantsService;
+
     @PostMapping
     public ResponseEntity<Vacas> createVaca(@RequestBody Vacas vaca) {
         try {
-            // Asegurar que los campos requeridos estén presentes
+            // Validaciones existentes
             if (vaca.getName() == null || vaca.getName().trim().isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
-
             if (vaca.getGoal() == null) {
                 return ResponseEntity.badRequest().build();
             }
-
-            // Si no se proporciona un ID, generarlo
-            if (vaca.getId() == null) {
-                vaca.setId(UUID.randomUUID());
-            }
-
-            // Validar que userId sea un UUID válido
             if (vaca.getUserId() == null) {
                 return ResponseEntity.badRequest().build();
             }
 
-            // Establecer valores por defecto para campos opcionales
+            // Generar ID y valores por defecto
+            if (vaca.getId() == null) {
+                vaca.setId(UUID.randomUUID());
+            }
             if (vaca.getCurrent() == null) {
                 vaca.setCurrent(BigDecimal.ZERO);
             }
-
             if (vaca.getCreatedAt() == null) {
                 vaca.setCreatedAt(new Timestamp(System.currentTimeMillis()));
             }
-
             if (vaca.getIsActive() == null) {
                 vaca.setIsActive(true);
             }
-
-            // Modificar el estado a "active" (minúsculas) para cumplir con la restricción de la base de datos
             if (vaca.getStatus() == null || "ACTIVE".equals(vaca.getStatus())) {
                 vaca.setStatus("active");
             }
 
-            return new ResponseEntity<>(vacasService.createVaca(vaca), HttpStatus.CREATED);
+            // Crear la vaca
+            Vacas createdVaca = vacasService.createVaca(vaca);
+
+            // Agregar al usuario creador como participante
+            Participants creatorParticipant = new Participants();
+            creatorParticipant.setVacaId(createdVaca.getId());
+            creatorParticipant.setUserId(vaca.getUserId());
+            creatorParticipant.setStatus("activo");
+            participantsService.createParticipant(creatorParticipant);
+
+            return new ResponseEntity<>(createdVaca, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
