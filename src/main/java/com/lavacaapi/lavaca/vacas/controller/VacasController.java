@@ -144,4 +144,11 @@ public class VacasController {
         vacasService.deleteVaca(id);
         return ResponseEntity.noContent().build();
     }
+
+
+    @GetMapping("/user/{userId}/participation")
+    public ResponseEntity<List<Vacas>> getVacasByUserParticipation(@PathVariable UUID userId) {
+        return ResponseEntity.ok(vacasService.getVacasByUserParticipation(userId));
+    }
+
 }

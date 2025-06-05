@@ -150,9 +150,12 @@ public class VacasService {
      * @return lista de vacas del usuario
      */
     public List<Vacas> getVacasByUserId(UUID userId) {
-        return vacasRepository.findAll().stream()
+        System.out.println("[DEBUG] getVacasByUserId - userId recibido: " + userId);
+        List<Vacas> vacas = vacasRepository.findAll().stream()
                 .filter(v -> userId.equals(v.getUserId()))
                 .toList();
+        System.out.println("[DEBUG] getVacasByUserId - vacas encontradas: " + vacas.size());
+        return vacas;
     }
 
     /**
@@ -165,7 +168,6 @@ public class VacasService {
         List<Vacas> ownerVacas = vacasRepository.findAll().stream()
                 .filter(v -> userId.equals(v.getUserId()))
                 .toList();
-
         // Vacas donde el usuario es participante
         List<UUID> participantVacaIds = participantsRepository.findByUserId(userId).stream()
                 .map(Participants::getVacaId)
