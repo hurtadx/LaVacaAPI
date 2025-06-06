@@ -10,6 +10,9 @@ COPY gradle ./gradle
 # Copiar el código fuente
 COPY src ./src
 
+# Dar permisos de ejecución a gradlew
+RUN chmod +x gradlew
+
 # Descargar dependencias y compilar el proyecto
 RUN ./gradlew build --no-daemon
 
@@ -26,4 +29,3 @@ EXPOSE 8080
 
 # Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
