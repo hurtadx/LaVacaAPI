@@ -3,14 +3,6 @@ package com.lavacaapi.lavaca.invitations.service;
 import com.lavacaapi.lavaca.invitations.Invitations;
 import com.lavacaapi.lavaca.invitations.repository.InvitationsRepository;
 import com.lavacaapi.lavaca.vacas.repository.VacasRepository;
-import com.lavacaapi.lavaca.participants.Participants;
-import com.lavacaapi.lavaca.participants.service.ParticipantsService;
-import com.lavacaapi.lavaca.notifications.Notification;
-import com.lavacaapi.lavaca.notifications.NotificationService;
-import com.lavacaapi.lavaca.profiles.service.ProfilesService;
-import com.lavacaapi.lavaca.profiles.Profiles;
-import com.lavacaapi.lavaca.invitations.controller.dto.InvitationRequestDTO;
-import com.lavacaapi.lavaca.participants.dto.ParticipantRequestDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,15 +21,6 @@ public class InvitationsService {
 
     @Autowired
     private VacasRepository vacasRepository;
-
-    @Autowired
-    private ParticipantsService participantsService;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private ProfilesService profilesService;
 
     /**
      * Crea una nueva invitación
@@ -60,22 +43,9 @@ public class InvitationsService {
             throw new EntityNotFoundException("No se encontró la vaca con ID: " + invitation.getVacaId());
         }
 
-        // Validar que el usuario receptor exista antes de crear la invitación y la notificación
-        boolean receptorExiste = profilesService.getProfileByUserId(invitation.getReceiverId()).isPresent();
-        if (!receptorExiste) {
-            throw new EntityNotFoundException("El usuario receptor no existe: " + invitation.getReceiverId());
-        }
-
-        // Verificar que no exista una invitación pendiente para la misma vaca y receptor
-        boolean existePendiente = invitationsRepository.findByReceiverIdAndVacaId(invitation.getReceiverId(), invitation.getVacaId())
-            .stream()
-            .anyMatch(inv -> "pending".equalsIgnoreCase(inv.getStatus()));
-        if (existePendiente) {
-            String nombre = profilesService
-                .getProfileByUserId(invitation.getReceiverId())
-                .map(Profiles::getUsername)
-                .orElse("El usuario");
-            throw new IllegalArgumentException(nombre + " ya tiene una invitación pendiente a esta vaca");
+        // Verificar que no exista una invitación para la misma vaca y remitente
+        if (invitationsRepository.existsByVacaIdAndSenderId(invitation.getVacaId(), invitation.getSenderId())) {
+            throw new IllegalArgumentException("Ya existe una invitación para esta vaca y remitente");
         }
 
         // Generar ID si no se proporciona
@@ -93,36 +63,7 @@ public class InvitationsService {
             invitation.setStatus("pending");
         }
 
-        Invitations savedInvitation = invitationsRepository.save(invitation);
-
-        // Enviar notificación al receptor
-        Notification notification = new Notification();
-        notification.setUserId(invitation.getReceiverId());
-        notification.setMessage("Has recibido una nueva invitación para unirte a una vaca.");
-        notification.setType("INVITATION");
-        notificationService.createNotification(notification);
-
-        return savedInvitation;
-    }
-
-    /**
-     * Crea invitaciones a partir de un InvitationRequestDTO
-     * @param dto datos de la invitación
-     * @return la primera invitación creada (puedes ajustar para retornar una lista si lo prefieres)
-     */
-    @Transactional
-    public Invitations createInvitation(InvitationRequestDTO dto) {
-        Invitations lastInvitation = null;
-        for (UUID userId : dto.getUser_ids()) {
-            Invitations invitation = new Invitations();
-            invitation.setVacaId(dto.getVaca_id());
-            invitation.setReceiverId(userId);
-            invitation.setSenderId(dto.getSender_id());
-            invitation.setStatus("pending");
-            invitation.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
-            lastInvitation = createInvitation(invitation);
-        }
-        return lastInvitation;
+        return invitationsRepository.save(invitation);
     }
 
     /**
@@ -173,6 +114,16 @@ public class InvitationsService {
     }
 
     /**
+     * Obtiene todas las invitaciones recibidas por un usuario con un estado específico
+     * @param receiverId ID del usuario receptor
+     * @param status estado de la invitación
+     * @return lista de invitaciones recibidas con el estado especificado
+     */
+    public List<Invitations> getInvitationsByReceiverIdAndStatus(UUID receiverId, String status) {
+        return invitationsRepository.findByReceiverIdAndStatus(receiverId, status);
+    }
+
+    /**
      * Obtiene todas las invitaciones con un estado específico
      * @param status estado de la invitación (PENDING, ACCEPTED, REJECTED)
      * @return lista de invitaciones con el estado especificado
@@ -208,31 +159,18 @@ public class InvitationsService {
     /**
      * Actualiza el estado de una invitación (aceptar, rechazar, cancelar)
      * @param id ID de la invitación
-     * @param status nuevo estado (pending, accepted, rejected, cancelled)
-     * @param participantRequestDTO datos del participante
+     * @param status nuevo estado (PENDING, ACCEPTED, REJECTED, CANCELLED)
      * @return invitación actualizada
      */
     @Transactional
-    public Invitations updateInvitationStatus(UUID id, String status, ParticipantRequestDTO participantRequestDTO) {
-        if (status == null || (!status.equals("pending") && !status.equals("accepted") && !status.equals("rejected") && !status.equals("cancelled"))) {
-            throw new IllegalArgumentException("El estado debe ser pending, accepted, rejected o cancelled");
+    public Invitations updateInvitationStatus(UUID id, String status) {
+        if (status == null || (!status.equals("PENDING") && !status.equals("ACCEPTED") && !status.equals("REJECTED") && !status.equals("CANCELLED"))) {
+            throw new IllegalArgumentException("El estado debe ser PENDING, ACCEPTED, REJECTED o CANCELLED");
         }
         Invitations invitation = invitationsRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró la invitación con ID: " + id));
         invitation.setStatus(status);
-        Invitations updatedInvitation = invitationsRepository.save(invitation);
-        // Si el nuevo estado es accepted, agregar como participante usando los datos del body
-        if ("accepted".equals(status)) {
-            Participants participant = new Participants();
-            participant.setVacaId(invitation.getVacaId());
-            participant.setUserId(participantRequestDTO.getUser_id());
-            participant.setName(participantRequestDTO.getName());
-            participant.setEmail(participantRequestDTO.getEmail());
-            participant.setStatus("activo");
-            participant.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
-            participantsService.createParticipant(participant);
-        }
-        return updatedInvitation;
+        return invitationsRepository.save(invitation);
     }
 
     /**
@@ -247,4 +185,3 @@ public class InvitationsService {
         invitationsRepository.deleteById(id);
     }
 }
-

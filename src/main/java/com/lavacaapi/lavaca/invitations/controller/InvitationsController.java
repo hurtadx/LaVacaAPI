@@ -6,6 +6,8 @@ import com.lavacaapi.lavaca.participants.Participants;
 import com.lavacaapi.lavaca.participants.service.ParticipantsService;
 import com.lavacaapi.lavaca.invitations.controller.dto.InvitationRequestDTO;
 import com.lavacaapi.lavaca.participants.dto.ParticipantRequestDTO;
+import com.lavacaapi.lavaca.notifications.Notification;
+import com.lavacaapi.lavaca.notifications.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,30 +27,53 @@ public class InvitationsController {
     @Autowired
     private InvitationsService invitationsService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     // Obtener invitaciones recibidas por un usuario
     @GetMapping("/user/{userId}/received")
-    public ResponseEntity<List<Invitations>> getReceivedInvitations(@PathVariable UUID userId) {
-        List<Invitations> invitations = invitationsService.getInvitationsByReceiverId(userId);
+    public ResponseEntity<List<Invitations>> getReceivedInvitations(@PathVariable UUID userId, @RequestParam(required = false) String status) {
+        List<Invitations> invitations;
+        if (status != null && !status.isEmpty()) {
+            invitations = invitationsService.getInvitationsByReceiverIdAndStatus(userId, status);
+        } else {
+            invitations = invitationsService.getInvitationsByReceiverId(userId);
+        }
         return ResponseEntity.ok(invitations);
     }
 
     // Enviar invitación para agregar participante a una vaca
     @PostMapping
-    public ResponseEntity<Invitations> sendInvitation(@RequestBody InvitationRequestDTO invitationRequestDTO) {
-        try {
-            Invitations invitation = invitationsService.createInvitation(invitationRequestDTO);
-            return new ResponseEntity<>(invitation, HttpStatus.CREATED);
-        } catch (Exception e) {
-            e.printStackTrace(); // Log para depuración
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    public ResponseEntity<List<Invitations>> sendInvitation(@RequestBody InvitationRequestDTO invitationRequestDTO) {
+        List<Invitations> createdInvitations = new ArrayList<>();
+        for (UUID receiverId : invitationRequestDTO.getUser_ids()) {
+            // Validación de campos obligatorios
+            if (invitationRequestDTO.getVaca_id() == null || invitationRequestDTO.getSender_id() == null || receiverId == null) {
+                throw new IllegalArgumentException("Faltan datos obligatorios para la invitación (vacaId, senderId o receiverId)");
+            }
+            Invitations invitation = new Invitations();
+            invitation.setVacaId(invitationRequestDTO.getVaca_id());
+            invitation.setSenderId(invitationRequestDTO.getSender_id());
+            invitation.setReceiverId(receiverId);
+            invitation.setStatus("pending");
+            invitation.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+            Invitations savedInvitation = invitationsService.createInvitation(invitation);
+            createdInvitations.add(savedInvitation);
+            // Crear notificación para el usuario invitado
+            Notification notification = new Notification();
+            notification.setUserId(receiverId);
+            notification.setMessage("Has sido invitado a una vaca");
+            notification.setType("invitation");
+            notificationService.createNotification(notification);
         }
+        return new ResponseEntity<>(createdInvitations, HttpStatus.CREATED);
     }
 
     // Aceptar invitación
     @PutMapping("/{invitationId}/accept")
-    public ResponseEntity<Invitations> acceptInvitation(@PathVariable UUID invitationId, @RequestBody ParticipantRequestDTO participantRequestDTO) {
+    public ResponseEntity<Invitations> acceptInvitation(@PathVariable UUID invitationId) {
         try {
-            Invitations updated = invitationsService.updateInvitationStatus(invitationId, "accepted", participantRequestDTO);
+            Invitations updated = invitationsService.updateInvitationStatus(invitationId, "ACCEPTED");
             return ResponseEntity.ok(updated);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -59,9 +84,9 @@ public class InvitationsController {
 
     // Rechazar invitación
     @PutMapping("/{invitationId}/reject")
-    public ResponseEntity<Invitations> rejectInvitation(@PathVariable UUID invitationId, @RequestBody(required = false) ParticipantRequestDTO participantRequestDTO) {
+    public ResponseEntity<Invitations> rejectInvitation(@PathVariable UUID invitationId) {
         try {
-            Invitations updated = invitationsService.updateInvitationStatus(invitationId, "rejected", participantRequestDTO);
+            Invitations updated = invitationsService.updateInvitationStatus(invitationId, "REJECTED");
             return ResponseEntity.ok(updated);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
