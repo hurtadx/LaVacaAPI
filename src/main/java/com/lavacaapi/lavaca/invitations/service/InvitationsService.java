@@ -110,7 +110,8 @@ public class InvitationsService {
      * @return lista de invitaciones recibidas
      */
     public List<Invitations> getInvitationsByReceiverId(UUID receiverId) {
-        return invitationsRepository.findByReceiverId(receiverId);
+        // Solo devolver invitaciones con status 'pending'
+        return invitationsRepository.findByReceiverIdAndStatus(receiverId, "pending");
     }
 
     /**

@@ -4,6 +4,8 @@ import com.lavacaapi.lavaca.vacas.Vacas;
 import com.lavacaapi.lavaca.vacas.service.VacasService;
 import com.lavacaapi.lavaca.participants.Participants;
 import com.lavacaapi.lavaca.participants.service.ParticipantsService;
+import com.lavacaapi.lavaca.profiles.repository.ProfilesRepository;
+import com.lavacaapi.lavaca.profiles.Profiles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +27,11 @@ public class VacasController {
     @Autowired
     private ParticipantsService participantsService;
 
+    @Autowired
+    private ProfilesRepository profilesRepository;
+
     @PostMapping
-    public ResponseEntity<Vacas> createVaca(@RequestBody Vacas vaca) {
+    public ResponseEntity<?> createVaca(@RequestBody Vacas vaca) {
         try {
             // Validaciones existentes
             if (vaca.getName() == null || vaca.getName().trim().isEmpty()) {
@@ -64,9 +69,15 @@ public class VacasController {
             creatorParticipant.setVacaId(createdVaca.getId());
             creatorParticipant.setUserId(vaca.getUserId());
             creatorParticipant.setStatus("activo");
+            // Buscar el username del perfil
+            String name = profilesRepository.findByUserId(vaca.getUserId())
+                .map(Profiles::getUsername)
+                .orElse("Sin nombre");
+            creatorParticipant.setName(name);
             participantsService.createParticipant(creatorParticipant);
 
-            return new ResponseEntity<>(createdVaca, HttpStatus.CREATED);
+            // Respuesta bajo la clave 'data'
+            return new ResponseEntity<>(java.util.Collections.singletonMap("data", createdVaca), HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

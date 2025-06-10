@@ -57,11 +57,6 @@ public class VacasService {
             throw new IllegalArgumentException("El ID del usuario creador es obligatorio");
         }
 
-        // Verificar que no exista una vaca con el mismo nombre
-        if (vacasRepository.existsByNameIgnoreCase(vaca.getName())) {
-            throw new IllegalArgumentException("Ya existe una vaca con ese nombre");
-        }
-
         // Generar ID si no se proporciona
         if (vaca.getId() == null) {
             vaca.setId(UUID.randomUUID());

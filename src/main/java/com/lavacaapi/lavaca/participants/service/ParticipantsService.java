@@ -322,4 +322,11 @@ public class ParticipantsService {
         }
         participantsRepository.deleteById(id);
     }
+
+    /**
+     * Verifica si existe un participante con el mismo usuario en la misma vaca
+     */
+    public boolean existsByVacaIdAndUserId(UUID vacaId, UUID userId) {
+        return participantsRepository.existsByVacaIdAndUserId(vacaId, userId);
+    }
 }
