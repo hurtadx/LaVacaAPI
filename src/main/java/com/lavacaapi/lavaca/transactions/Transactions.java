@@ -15,20 +15,11 @@ public class Transactions {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "vacaid", nullable = false, length = 36)
+    @Column(name = "vaca_id", nullable = false)
     private UUID vacaId;
 
-    @Column(name = "participantid", nullable = false)
+    @Column(name = "participant_id", nullable = false)
     private UUID participantId;
-
-    @Column(name = "amount", nullable = false)
-    private int amount;
-
-    @Column(name = "description", length = 255)
-    private String description;
-
-    @Column(name = "date", nullable = false)
-    private Timestamp date;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
@@ -41,6 +32,12 @@ public class Transactions {
 
     @Column(name = "payment_method", length = 50)
     private String paymentMethod;
+
+    @Column(name = "vacaid", nullable = false)
+    private UUID vacaid;
+
+    @Column(name = "participantid", nullable = false)
+    private UUID participantid;
 
     public Transactions() {
     }
@@ -136,5 +133,21 @@ public class Transactions {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public UUID getVacaid() {
+        return vacaid;
+    }
+
+    public void setVacaid(UUID vacaid) {
+        this.vacaid = vacaid;
+    }
+
+    public UUID getParticipantid() {
+        return participantid;
+    }
+
+    public void setParticipantid(UUID participantid) {
+        this.participantid = participantid;
     }
 }
