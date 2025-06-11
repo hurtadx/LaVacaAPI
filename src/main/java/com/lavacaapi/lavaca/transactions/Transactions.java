@@ -21,6 +21,15 @@ public class Transactions {
     @Column(name = "participant_id", nullable = false)
     private UUID participantId;
 
+    @Column(name = "amount", nullable = false)
+    private int amount;
+
+    @Column(name = "description", length = 255)
+    private String description;
+
+    @Column(name = "date", nullable = false)
+    private Timestamp date;
+
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
@@ -30,19 +39,10 @@ public class Transactions {
     @Column(name = "approved_by")
     private UUID approvedBy;
 
-    @Column(name = "payment_method", length = 50)
-    private String paymentMethod;
-
-    @Column(name = "vacaid", nullable = false)
-    private UUID vacaid;
-
-    @Column(name = "participantid", nullable = false)
-    private UUID participantid;
-
     public Transactions() {
     }
 
-    public Transactions(UUID id, UUID vacaId, UUID participantId, int amount, String description, Timestamp date, UUID userId, String type, UUID approvedBy, String paymentMethod) {
+    public Transactions(UUID id, UUID vacaId, UUID participantId, int amount, String description, Timestamp date, UUID userId, String type, UUID approvedBy) {
         this.id = id;
         this.vacaId = vacaId;
         this.participantId = participantId;
@@ -52,7 +52,6 @@ public class Transactions {
         this.userId = userId;
         this.type = type;
         this.approvedBy = approvedBy;
-        this.paymentMethod = paymentMethod;
     }
 
     public UUID getId() {
@@ -125,29 +124,5 @@ public class Transactions {
 
     public void setApprovedBy(UUID approvedBy) {
         this.approvedBy = approvedBy;
-    }
-
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
-    public UUID getVacaid() {
-        return vacaid;
-    }
-
-    public void setVacaid(UUID vacaid) {
-        this.vacaid = vacaid;
-    }
-
-    public UUID getParticipantid() {
-        return participantid;
-    }
-
-    public void setParticipantid(UUID participantid) {
-        this.participantid = participantid;
     }
 }

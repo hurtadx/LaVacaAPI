@@ -20,7 +20,4 @@ public interface TransactionsRepository extends JpaRepository<Transactions, UUID
 
     // Buscar por tipo de transacción
     List<Transactions> findByType(String type);
-
-    // Buscar por método de pago
-    List<Transactions> findByPaymentMethod(String paymentMethod);
 }

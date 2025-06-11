@@ -3,6 +3,7 @@ package com.lavacaapi.lavaca.transactions.controller;
 import com.lavacaapi.lavaca.transactions.Transactions;
 import com.lavacaapi.lavaca.transactions.service.TransactionsService;
 import com.lavacaapi.lavaca.transactions.dto.AporteRequestDTO;
+import com.lavacaapi.lavaca.transactions.dto.AporteResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,9 @@ public class TransactionsController {
     private TransactionsService transactionsService;
 
     @PostMapping("/aporte")
-    public ResponseEntity<Transactions> createAporte(@RequestBody AporteRequestDTO aporteRequestDTO) {
-        Transactions created = transactionsService.createAporte(aporteRequestDTO);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public ResponseEntity<AporteResponseDTO> createAporte(@RequestBody AporteRequestDTO aporteRequestDTO) {
+        AporteResponseDTO response = transactionsService.createAporte(aporteRequestDTO);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PostMapping
@@ -47,4 +48,3 @@ public class TransactionsController {
         return ResponseEntity.ok(transactionsService.getTransactionsByVaca(vacaId));
     }
 }
-

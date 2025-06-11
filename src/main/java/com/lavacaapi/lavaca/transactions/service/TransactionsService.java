@@ -18,6 +18,9 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import com.lavacaapi.lavaca.transactions.dto.AporteRequestDTO;
+import com.lavacaapi.lavaca.transactions.dto.AporteResponseDTO;
+import com.lavacaapi.lavaca.profiles.repository.ProfilesRepository;
+import com.lavacaapi.lavaca.profiles.Profiles;
 
 @Service
 public class TransactionsService {
@@ -27,9 +30,12 @@ public class TransactionsService {
     private VacasRepository vacasRepository;
     @Autowired
     private ParticipantsRepository participantsRepository;
+    @Autowired
+    private ProfilesRepository profilesRepository;
 
     @Transactional
-    public Transactions createAporte(AporteRequestDTO aporteRequestDTO) {
+    public AporteResponseDTO createAporte(AporteRequestDTO aporteRequestDTO) {
+        System.out.println("[APORTE] Payload recibido en backend: " + aporteRequestDTO);
         // Validar existencia de la vaca
         Vacas vaca = vacasRepository.findById(aporteRequestDTO.getVacaId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró la vaca con ID: " + aporteRequestDTO.getVacaId()));
@@ -52,18 +58,22 @@ public class TransactionsService {
         vacasRepository.save(vaca);
         // Crear y guardar la transacción
         Transactions transaction = new Transactions();
-        if (transaction.getId() == null) {
-            transaction.setId(UUID.randomUUID());
-        }
+        transaction.setId(UUID.randomUUID());
         transaction.setVacaId(vaca.getId());
         transaction.setParticipantId(participant.getId());
         transaction.setAmount(aporteRequestDTO.getAmount());
         transaction.setDescription(aporteRequestDTO.getDescription());
         transaction.setType(aporteRequestDTO.getType());
         transaction.setDate(new Timestamp(System.currentTimeMillis()));
-        transaction.setUserId(participant.getId()); // Asignar participantId como userId temporalmente
-        // Puedes asignar paymentMethod y approvedBy si es necesario
-        return transactionsRepository.save(transaction);
+        transaction.setUserId(aporteRequestDTO.getUserId());
+        Transactions savedTransaction = transactionsRepository.save(transaction);
+        // Obtener perfil del usuario
+        Profiles profile = profilesRepository.findByUserId(aporteRequestDTO.getUserId())
+                .orElse(null);
+        String username = profile != null ? profile.getUsername() : null;
+        String email = profile != null ? profile.getEmail() : null;
+        double newTotal = vaca.getCurrent().doubleValue();
+        return new AporteResponseDTO(savedTransaction, newTotal, username, email);
     }
 
     public List<Transactions> getTransactionsByVaca(UUID vacaId) {

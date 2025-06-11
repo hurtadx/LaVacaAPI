@@ -46,10 +46,22 @@ public class Vacas {
     @Column(name = "user_id", nullable = false, length = 36)
     private UUID userId;
 
+    @Column(name = "tipo_regla", length = 50)
+    private String tipoRegla;
+
+    @Column(name = "tiempo_limite_votacion")
+    private Integer tiempoLimiteVotacion;
+
+    @Column(name = "poder_veto")
+    private Boolean poderVeto;
+
+    @Column(name = "porcentaje_veto")
+    private Double porcentajeVeto;
+
     public Vacas() {
     }
 
-    public Vacas(UUID id, String name, String description, BigDecimal goal, BigDecimal current, String color, Timestamp createdAt, Timestamp deadline, Boolean isActive, String status, UUID userId) {
+    public Vacas(UUID id, String name, String description, BigDecimal goal, BigDecimal current, String color, Timestamp createdAt, Timestamp deadline, Boolean isActive, String status, UUID userId, String tipoRegla, Integer tiempoLimiteVotacion, Boolean poderVeto, Double porcentajeVeto) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -61,6 +73,10 @@ public class Vacas {
         this.isActive = isActive;
         this.status = status;
         this.userId = userId;
+        this.tipoRegla = tipoRegla;
+        this.tiempoLimiteVotacion = tiempoLimiteVotacion;
+        this.poderVeto = poderVeto;
+        this.porcentajeVeto = porcentajeVeto;
     }
 
     public UUID getId() {
@@ -149,5 +165,37 @@ public class Vacas {
 
     public void setUserId(UUID userId) {
         this.userId = userId;
+    }
+
+    public String getTipoRegla() {
+        return tipoRegla;
+    }
+
+    public void setTipoRegla(String tipoRegla) {
+        this.tipoRegla = tipoRegla;
+    }
+
+    public Integer getTiempoLimiteVotacion() {
+        return tiempoLimiteVotacion;
+    }
+
+    public void setTiempoLimiteVotacion(Integer tiempoLimiteVotacion) {
+        this.tiempoLimiteVotacion = tiempoLimiteVotacion;
+    }
+
+    public Boolean isPoderVeto() {
+        return poderVeto;
+    }
+
+    public void setPoderVeto(Boolean poderVeto) {
+        this.poderVeto = poderVeto;
+    }
+
+    public Double getPorcentajeVeto() {
+        return porcentajeVeto;
+    }
+
+    public void setPorcentajeVeto(Double porcentajeVeto) {
+        this.porcentajeVeto = porcentajeVeto;
     }
 }

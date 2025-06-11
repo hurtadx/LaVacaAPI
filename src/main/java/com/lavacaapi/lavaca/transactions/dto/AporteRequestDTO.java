@@ -15,6 +15,8 @@ public class AporteRequestDTO {
     private String description;
     @JsonProperty("type")
     private String type = "aporte";
+    @JsonProperty("user_id")
+    private UUID userId;
 
     public UUID getVacaId() {
         return vacaId;
@@ -54,5 +56,25 @@ public class AporteRequestDTO {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    @Override
+    public String toString() {
+        return "AporteRequestDTO{" +
+                "vacaId=" + vacaId +
+                ", participantId=" + participantId +
+                ", amount=" + amount +
+                ", description='" + description + '\'' +
+                ", type='" + type + '\'' +
+                ", userId=" + userId +
+                '}';
     }
 }
